@@ -4,134 +4,139 @@ use strict;
 use warnings;
 use feature 'say';
 
+use List::Util qw//;
 use JSON qw//;
 use File::Touch 0.12 qw//;
-use MIME::Base64 qw//;
-use Time::Piece qw//;
 use DDP;
 
 use Project::Util;
 
 use Exporter 'import';
-our @EXPORT_OK = qw/new get_conf apply_update check_required_keys unmarshal_json marshal_json/;
+our @EXPORT_OK = qw/lookup_fmt new update/;
 
-my @data_keys = qw/name funds birthday/;
-my @audit_ts_keys = qw/created_at updated_at deleted_at/;
+sub _prototype {
+    return {
+        name => undef,
+        funds => undef,
+        birthday => undef,
+        created_at => Project::Util::now_iso(),
+        updated_at => Project::Util::now_iso(),
+        deleted_at => undef,
+    }
+};
 
-my @updateable_keys = qw/name funds birthday updated_at deleted_at/;
+my @all_keys = keys %{ _prototype() };
 
-my @all_keys = (@data_keys, @audit_ts_keys);
-my @sorted_keys = sort @all_keys;
+my @optional_keys = qw/deleted_at/;
+my @required_keys = do {
+    my %excl = map { $_ => 1 } @optional_keys;
+    grep { not $excl{$_} } @all_keys;
+};
 
-my %conf = (
-    birthday_fmt => '%Y-%m-%d',
-    audit_ts_fmt => '%Y-%m-%dT%H:%M:%S',
+my @immutable_keys = qw/created_at/;
+my @updateable_keys = do {
+    my %excl = map { $_ => 1 } @immutable_keys;
+    grep { not $excl{$_} } @all_keys;
+};
+
+my %datetime_fmt = (
+    '%Y-%m-%d' => [qw/birthday/],
+    '%Y-%m-%dT%H:%M:%S' => [qw/created_at updated_at deleted_at/],
 );
 
-sub get_conf {
-    return %conf;
+my @pairs = do {
+    my @ret = ();
+    while (my ($k, $v) = each %datetime_fmt) {
+        push @ret, [$k, $v];
+    }
+    @ret;
+};
+
+p @pairs;
+
+sub lookup_fmt {
+    my $field = shift;
+
+    while (my ($fmt, @fields) = each %datetime_fmt) {
+        if (List::Util::any { $_ eq $field } @fields) {
+            return $fmt;
+        }
+    }
+
+    return;
 }
 
 sub new {
     my ($class, $args) = @_;
 
-    my $self = {
-        name => $args->{name},
-        funds => $args->{funds},
-        birthday => $args->{birthday},
-        created_at => $args->{created_at} || Project::Util::now_iso(),
-        updated_at => $args->{updated_at} || Project::Util::now_iso(),
-        deleted_at => $args->{deleted_at} || undef,
-    };
+    my $self = _prototype();
+    
+    foreach (@all_keys) {
+        $self->{$_} = $args->{$_} if defined($args->{$_});
+    }
+
     bless $self, $class;
-
-    {
-        my $err = $self->check_required_keys();
-        return (undef, $err) if defined $err;
-    }
-
-    {
-        my $err = $self->validate_user_fields();
-        return (undef, $err) if defined $err;
-    }
-
+    
+    my $err = $self->_validate();
+    return (undef, $err) if defined $err;
+    
     return ($self, undef);
 }
 
-sub check_required_keys {
-    my $self = shift;
-
-    foreach (@data_keys) {
-        return "user $_ is required" unless exists($self->{$_});
-    }
-
-    return;
-}
-
-sub apply_updates {
+sub update {
     my ($self, $updates) = @_;
+
+    p $updates;
+    p @updateable_keys;
 
     foreach my $key (@updateable_keys) {
         $self->{$key} = $updates->{$key} if exists($updates->{$key});
     }
-    return $self->validate_user_fields();
+
+    return $self->_validate();
 }
 
-sub validate_user_shape {
+sub _validate {
     my $self = shift;
 
-    foreach (@all_keys) {
-        return "user must have a $_" unless exists($self->{$_});
+    foreach my $key (@required_keys) {
+        return "user field $key is required" unless defined($self->{$key});
     }
-    return;
-}
-
-sub validate_user_fields {
-    my $self = shift;
 
     my $funds = $self->{funds};
     if (defined($funds)) {
-        return 'funds: must be a number' unless $funds and $funds =~ /^-?\d+(.\d+)?$/;
+        return 'funds: must be a number' 
+            unless $funds and $funds =~ /^-?\d+(.\d+)?$/;
     }
 
-    my $birthday = $self->{birthday};
+    my $err = $self->_normalize_timestamps();
+    return $err if defined $err;    
 
-    if (defined($birthday)) {
-        my ($date, $err) = Project::Util::try_parse_ts($birthday, $conf{birthday_fmt});
-        return 'birthday: ' . $err if defined $err;
-        my $formatted = $date->strftime($conf{birthday_fmt});
-        if ($formatted ne $birthday) {
-            $self->{birthday} = $formatted;
-        }
-    }
+    return;
+}
 
-    foreach (@audit_ts_keys) {
-        my $field = $self->{$_};
-        if (defined $field) {
-            my ($date, $err) = Project::Util::try_parse_ts($field, $conf{audit_ts_fmt});
-            return $_ . ': ' . $err if defined $err;
-            my $formatted = $date->strftime($conf{audit_ts_fmt});
-            if ($formatted ne $field) {
-                $self->{$_} = $formatted;
+sub _normalize_timestamps {
+    my $self = shift;
+
+    while (my ($format, @fields) = each %datetime_fmt) {
+        foreach my $field (@fields) {
+            next unless defined($self->{$field});
+
+            my $value = $self->{$field};
+            my ($normalized, $err) = Project::Util::normalize_timestamp(
+                $value, $format,
+            );
+
+            return qq/field $field => "$value" does not match format "$format"/ 
+                if defined($err);
+
+            unless ($value eq $normalized) {
+                $self->{$field} = $normalized;
             }
         }
     }
 
     return;
-}
-
-sub unmarshal_json {
-    my ($class, $text) = @_;
-
-    my ($user, $err) = new $class, JSON::decode_json($text);
-    return ($user, $err);
-}
-
-sub marshal_json {
-    my $self = shift;
-
-    my $text = JSON::encode_json({ %{ $self } });
-    return $text;
 }
 
 1;

@@ -4,12 +4,27 @@ use strict;
 use warnings;
 
 use JSON qw//;
+use DDP;
 
 use Model::User;
 use Project::Util;
 
 use Exporter 'import';
 our @EXPORT_OK = qw/insert get get_all remove update/;
+
+sub unmarshal_json {
+    my $text = shift;
+
+    my ($user, $err) = Model::User->new(JSON::decode_json($text));
+    return ($user, $err);
+}
+
+sub marshal_json {
+    my $user = shift;
+
+    my $text = JSON::encode_json({ %{ $user } });
+    return $text;
+}
 
 sub insert {
     my ($filename, $args) = @_;
@@ -20,7 +35,7 @@ sub insert {
     File::Touch::touch($filename);
 
     open(my $fh, '>>', $filename) or die $!;
-    print $fh $user->marshal_json() . "\n";
+    print $fh marshal_json($user) . "\n";
     close $fh;
 
     my $id = Project::Util::count_lines $filename;
@@ -40,8 +55,10 @@ sub get {
 
     return (undef, 'not found') unless defined $text;
 
-    my ($user, $err) = Model::User->unmarshal_json($text);
-    return (undef, 'database file corrupt') if defined $err;
+    my ($user, $err) = unmarshal_json($text);
+
+    return (undef, 'unable to unmarshal database file: ' . $err) 
+        if defined $err;
 
     return (undef, 'not found') if defined $user->{deleted_at};
 
@@ -55,13 +72,16 @@ sub get_all {
 
     open(my $fh, '<', $filename) or die $!;
     while (<$fh>) {
-        my ($user, $err) = Model::User->unmarshal_json($_);
-        return (undef, 'database file corrupt') if defined $err;
+        my ($user, $err) = unmarshal_json($_);
+
+        return (undef, 'unable to unmarshal database file: ' . $err) 
+            if defined $err;
+
         push(@users, [$., $user]) unless defined $user->{deleted_at};
     }
     close $fh;
 
-    return \@users;
+    return (\@users, undef);
 }
 
 sub update {
@@ -74,17 +94,24 @@ sub update {
             push(@lines, $_);
             next;
         }
-        my ($user, $err) = Model::User->unmarshal_json($_);
+
+        my ($user, $err) = unmarshal_json($_);
+
         return (undef, 'database file corrupt') if defined $err;
 
         return if defined $user->{deleted_at};
 
+        # p %{$updates};
+        # p %{$user};
+
         {
-            my $err = $user->apply_updates($updates);
+            my $err = $user->update($updates);
             return (undef, $err) if defined $err;
         }
+
+        # p %{$user};
         
-        push(@lines, $user->marshal_json() . "\n");
+        push(@lines, marshal_json($user) . "\n");
     }
     close $read_fh;
 

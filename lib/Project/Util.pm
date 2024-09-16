@@ -4,10 +4,9 @@ use strict;
 use warnings;
 
 use Time::Piece qw//;
-use DDP;
 
 use Exporter 'import';
-our @EXPORT_OK = qw/insert get get_all remove update/;
+our @EXPORT_OK = qw/now_iso count_lines normalize_timestamp/;
 
 sub now_iso {
     my $text = Time::Piece::gmtime->strftime('%Y-%m-%dT%H:%M:%S');
@@ -26,17 +25,30 @@ sub count_lines {
     return $lines;
 }
 
-sub try_parse_ts {
+sub try_parse_timestamp {
     my ($string, $format) = @_;
 
     my $date;
-    eval {
+    eval {        
         $date = Time::Piece->strptime($string, $format);
     };
     if ($@) {
-        return (undef, 'invalid timestamp');
+        return (undef, $@);
     }
+
     return ($date, undef);
+}
+
+sub normalize_timestamp {
+    my ($timestamp_string, $format) = @_;
+
+    my ($date, $err) = try_parse_timestamp($timestamp_string, $format);
+
+    return (undef, $err) if defined $err;
+    
+    my $normalized = $date->strftime($format);
+
+    return ($normalized, undef);
 }
 
 1;

@@ -8,12 +8,12 @@ use Time::Piece qw//;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
+use Model::User qw//;
 use Controller::User qw//;
 use Project::Config qw//;
 
 my $conf = Project::Config::load();
 
-my %user_conf = Model::User::get_conf();
 my $users_file = $conf->{users_filename};
 
 get '/' => 'index';
@@ -21,8 +21,14 @@ get '/' => 'index';
 get '/users' => sub {
     my $c = shift;
 
-    my $users = Controller::User::get_all($users_file);
-    $c->stash(users => $users, birthday_fmt => $user_conf{birthday_fmt});
+    my ($users, $err) = Controller::User::get_all($users_file);
+
+    if (defined($err)) {
+        $c->flash(message => $err);
+        return $c->redirect_to('error');
+    }
+
+    $c->stash(users => $users, birthday_fmt => Model::User::lookup_fmt 'birthday');
     $c->render('users');
 };
 
@@ -92,6 +98,9 @@ __DATA__
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hello</title>
     <style>
+        :root {
+            color-scheme: light dark; /* both supported */
+        }
         html {
             font-family: system-ui, sans-serif;
         }
@@ -110,18 +119,32 @@ __DATA__
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users</title>
     <style>
+        :root {
+            color-scheme: light dark; /* both supported */
+        }
         html {
             font-family: system-ui, sans-serif;
         }
         td {
             padding-right: .5rem;
         }
+        .inverse {
+            background-color: black;
+            color: white;
+        }
+        @media (prefers-color-scheme: dark) {
+            .inverse {
+                background-color: white;
+                font-weight: 600;
+                color: black;
+            }
+        }
     </style>
 </head>
 <body>
     %= form_for '/user' => (method => 'POST') => begin
         <fieldset style="width: fit-content;">
-            <legend style="padding: 3px 6px; background-color: #000; color: #fff">
+            <legend class="inverse" style="padding: 3px 6px;">
                 new user
             </legend>
             %= label_for name => 'name'
@@ -189,6 +212,12 @@ __DATA__
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit</title>
+    <style>
+        :root {
+            color-scheme: light dark; /* both supported */
+        }
+        
+    </style>
 </head>
 <body>
     %= form_for "/user/$id?_method=PUT" => (method => 'POST') => begin
@@ -214,6 +243,11 @@ __DATA__
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Success</title>
+    <style>
+        :root {
+            color-scheme: light dark; /* both supported */
+        }
+    </style>
 </head>
 <body>
     <p>
@@ -230,6 +264,11 @@ __DATA__
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error</title>
+    <style>
+        :root {
+            color-scheme: light dark; /* both supported */
+        }
+    </style>
 </head>
 <body>
     <p>

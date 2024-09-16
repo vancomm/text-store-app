@@ -73,7 +73,10 @@ if ($command eq 'insert') {
     say $id;
 } elsif ($command eq 'get') {
     if (defined $opts{get_all}) {
-        my $users = Controller::User::get_all($filename);
+        my ($users, $err) = Controller::User::get_all($filename);
+
+        die "get all error: $err\n" if defined $err;
+
         foreach my $pair (@$users) {
             my ($id, $user) = @$pair;
             say join ' ', $id, $user->{name}, $user->{funds}, $user->{birthday};
@@ -97,10 +100,12 @@ if ($command eq 'insert') {
     my $updates = $opts{updates};
     my $err = Controller::User::update($filename, $id, $updates);
 
-    die "update error: $err\n" if defined $err;
+    die "update error: $err\n" if defined($err);
 } elsif ($command eq 'remove') {
     die "remove expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
     
     my $id = shift @ARGV;
-    Controller::User::remove($filename, $id);
+    my $err = Controller::User::remove($filename, $id);
+
+    die "delete error: $err\n" if defined($err);
 }
