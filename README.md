@@ -18,6 +18,8 @@
   - lineno instead of last_id + 1
 - extract read/write
 
-## Notes
-
-[Getopt::Long::Subcommand](lib/Getopt/Long/Subcommand.pm) is vendored from https://github.com/perlancar/perl-Getopt-Long-Subcommand.
+- render HTML not JSON
+- /users
+  - 3 inputs, "add" button
+  - list of users
+    - "delete" and "edit" buttons

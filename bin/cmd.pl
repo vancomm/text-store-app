@@ -4,19 +4,21 @@ use strict;
 use warnings;
 use feature 'say';
 
-use FindBin qw/$Bin/;
-use lib "$Bin/../lib";
-use TextStore::User qw//;
 use Getopt::Long::Subcommand;
 
-my $default_filename = 'user.data';
+use FindBin qw/$Bin/;
+use lib "$Bin/../lib";
+use Entity::User qw//;
+
+my $default_filename = 'user.wsv';
 
 my $usage = "usage: $0 [-fh] <command>
 
 commands:
     insert  <name> <height> <birthday>      Insert a new record into the 
                                             database. Returns record id
-    get    <id>                             Read an existing record
+    get     <id>                            Read an existing record
+            -a, --all                       Read all records
     update  <id> [-s, --set <key>=<value>]  Update an existing record
     remove  <id>                            Delete an existing record
 
@@ -25,7 +27,10 @@ options:
     -h, --help                              Print this message and exit
 ";
 
-my %opts = (filename => $default_filename);
+my %opts = (
+    filename => $default_filename,
+);
+
 my $res = GetOptions (
     options => {
         'f|filename=s' => \$opts{filename},
@@ -33,7 +38,11 @@ my $res = GetOptions (
     },
     subcommands => {
         insert => {},
-        get => {},
+        get => {
+            options => {
+                'a|all' => \$opts{get_all},
+            }
+        },
         update => {
             options => {
                 's|set=s%' => \$opts{updates},
@@ -53,31 +62,44 @@ my $filename = $opts{filename};
 if ($command eq 'insert') {
     die "insert expected 3 args, but received $nargs\n$usage" if $nargs != 3;
 
-    my ($name, $height, $birthday) = @ARGV;
-    my $user = {name => $name, height => $height, birthday => $birthday};
-    my ($id, $err) = TextStore::User::insert($filename, $user);
+    my ($name, $funds, $birthday) = @ARGV;
+    my ($id, $err) = Entity::User::insert(
+        $filename, {name => $name, funds => $funds, birthday => $birthday},
+    );
+
     die "insert error: $err\n" if defined $err;
 
     say $id;
 } elsif ($command eq 'get') {
-    die "read expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
+    if (defined $opts{get_all}) {
+        my $users = Entity::User::get_all($filename);
+        foreach my $pair (@$users) {
+            my ($id, $user) = @$pair;
+            say join ' ', $id, $user->{name}, $user->{funds}, $user->{birthday};
+        }
+    } else {
+        die "read expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
 
-    my $id = shift @ARGV;
-    my ($user, $err) = TextStore::User::get($filename, $id);
-    die "read error: $err\n" if defined $err;
+        my $id = shift @ARGV;
 
-    say join ' ', $user->{name}, $user->{height}, $user->{birthday};
+        my ($user, $err) = Entity::User::get($filename, $id);
+
+        die "read error: $err\n" if defined $err;
+
+        say join ' ', $user->{name}, $user->{funds}, $user->{birthday};
+    }
 } elsif ($command eq 'update') {
     die "update expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
     die 'update requires at least one field' unless defined $opts{updates};
 
     my $id = shift @ARGV;
     my $updates = $opts{updates};
-    my $err = TextStore::User::update($filename, $id, $updates);
+    my $err = Entity::User::update($filename, $id, $updates);
+
     die "update error: $err\n" if defined $err;
 } elsif ($command eq 'remove') {
     die "remove expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
     
     my $id = shift @ARGV;
-    TextStore::User::remove($filename, $id);
+    Entity::User::remove($filename, $id);
 }
