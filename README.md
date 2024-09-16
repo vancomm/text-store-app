@@ -23,3 +23,17 @@
   - 3 inputs, "add" button
   - list of users
     - "delete" and "edit" buttons
+
+### 2024-09-16
+
+- Entity -> Model
+- no Try::Tiny
+- no FindBin in .pm
+- extract controllers from models
+- use MySQL
+- read DBI docs (NB: prepare/bind/execute)
+- select array of hashes (NB: Slice)
+- optionally Docker Compose
+- write schema to .sql
+- read abt Carp (die -> croak)
+- read abt caller

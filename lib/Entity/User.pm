@@ -9,8 +9,6 @@ use MIME::Base64 qw//;
 use Time::Piece qw//;
 use Try::Tiny qw/try catch/;
 
-use FindBin qw/$Bin/;
-use lib "$Bin/../lib";
 use Marshal::WSV qw//;
 
 use Exporter 'import';

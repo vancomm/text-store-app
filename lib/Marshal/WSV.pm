@@ -38,7 +38,7 @@ sub unquote_value {
 sub unmarshal_fields {
     my $line = shift;
 
-    return map { scalar unquote_value($_) } split(' ', $line);
+    return map { scalar unquote_value($_) } split(' ', $line); # BUG: cannot split by space
 }
 
 1;

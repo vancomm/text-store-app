@@ -17,7 +17,7 @@ my %conf = (
 my %user_conf = Entity::User::get_conf();
 my $users_file = $conf{users_file};
 
-get '' => 'index';
+get '/' => 'index';
 
 get '/users' => sub {
     my $c = shift;
