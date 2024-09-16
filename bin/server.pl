@@ -8,21 +8,20 @@ use Time::Piece qw//;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
-use Entity::User qw//;
+use Controller::User qw//;
+use Project::Config qw//;
 
-my %conf = (
-    users_file => 'user.wsv',
-);
+my $conf = Project::Config::load();
 
-my %user_conf = Entity::User::get_conf();
-my $users_file = $conf{users_file};
+my %user_conf = Model::User::get_conf();
+my $users_file = $conf->{users_filename};
 
 get '/' => 'index';
 
 get '/users' => sub {
     my $c = shift;
 
-    my $users = Entity::User::get_all($users_file);
+    my $users = Controller::User::get_all($users_file);
     $c->stash(users => $users, birthday_fmt => $user_conf{birthday_fmt});
     $c->render('users');
 };
@@ -30,7 +29,7 @@ get '/users' => sub {
 post '/user' => sub {
     my $c = shift;
 
-    my ($id, $err) = Entity::User::insert($users_file, $c->req->params->to_hash);
+    my ($id, $err) = Controller::User::insert($users_file, $c->req->params->to_hash);
     if (defined $err) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
@@ -43,7 +42,7 @@ get '/user/edit/:id' => sub {
     my $c = shift;
     
     my $id = $c->param('id');
-    my ($user, $err) = Entity::User::get($users_file, $id);
+    my ($user, $err) = Controller::User::get($users_file, $id);
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
@@ -56,7 +55,7 @@ del '/user/:id' => sub {
     my $c = shift;
     
     my $id = $c->param('id');
-    my $err = Entity::User::remove($users_file, $id);
+    my $err = Controller::User::remove($users_file, $id);
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
@@ -70,7 +69,7 @@ put '/user/:id' => sub {
     my $id = $c->param('id');
     my $updates = $c->req->params->to_hash;
     $c->log->debug($updates);
-    my ($user, $err) = Entity::User::update($users_file, $id, $updates);
+    my ($user, $err) = Controller::User::update($users_file, $id, $updates);
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');

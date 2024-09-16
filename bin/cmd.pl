@@ -8,9 +8,10 @@ use Getopt::Long::Subcommand;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
-use Entity::User qw//;
+use Controller::User qw//;
+use Project::Config qw//;
 
-my $default_filename = 'user.wsv';
+my $conf = Project::Config::load();
 
 my $usage = "usage: $0 [-fh] <command>
 
@@ -28,7 +29,7 @@ options:
 ";
 
 my %opts = (
-    filename => $default_filename,
+    filename => $conf->{users_filename},
 );
 
 my $res = GetOptions (
@@ -63,7 +64,7 @@ if ($command eq 'insert') {
     die "insert expected 3 args, but received $nargs\n$usage" if $nargs != 3;
 
     my ($name, $funds, $birthday) = @ARGV;
-    my ($id, $err) = Entity::User::insert(
+    my ($id, $err) = Controller::User::insert(
         $filename, {name => $name, funds => $funds, birthday => $birthday},
     );
 
@@ -72,7 +73,7 @@ if ($command eq 'insert') {
     say $id;
 } elsif ($command eq 'get') {
     if (defined $opts{get_all}) {
-        my $users = Entity::User::get_all($filename);
+        my $users = Controller::User::get_all($filename);
         foreach my $pair (@$users) {
             my ($id, $user) = @$pair;
             say join ' ', $id, $user->{name}, $user->{funds}, $user->{birthday};
@@ -82,7 +83,7 @@ if ($command eq 'insert') {
 
         my $id = shift @ARGV;
 
-        my ($user, $err) = Entity::User::get($filename, $id);
+        my ($user, $err) = Controller::User::get($filename, $id);
 
         die "read error: $err\n" if defined $err;
 
@@ -94,12 +95,12 @@ if ($command eq 'insert') {
 
     my $id = shift @ARGV;
     my $updates = $opts{updates};
-    my $err = Entity::User::update($filename, $id, $updates);
+    my $err = Controller::User::update($filename, $id, $updates);
 
     die "update error: $err\n" if defined $err;
 } elsif ($command eq 'remove') {
     die "remove expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
     
     my $id = shift @ARGV;
-    Entity::User::remove($filename, $id);
+    Controller::User::remove($filename, $id);
 }
