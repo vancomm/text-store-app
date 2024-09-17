@@ -158,3 +158,5 @@ sub remove {
         die 'unable to delete user: ' . $@;
     }
 }
+
+1;

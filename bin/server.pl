@@ -21,6 +21,7 @@ my $users_file = $conf{users_filename};
 
 my $dbh_opts = {
     RaiseError => 1,
+    PrintError => 0,
     AutoCommit => 0,
 };
 my $dbh = DBI->connect(
