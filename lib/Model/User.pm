@@ -44,22 +44,12 @@ my %datetime_fmt = (
     '%Y-%m-%dT%H:%M:%S' => [qw/created_at updated_at deleted_at/],
 );
 
-my @pairs = do {
-    my @ret = ();
-    while (my ($k, $v) = each %datetime_fmt) {
-        push @ret, [$k, $v];
-    }
-    @ret;
-};
-
-p @pairs;
-
 sub lookup_fmt {
     my $field = shift;
 
-    while (my ($fmt, @fields) = each %datetime_fmt) {
-        if (List::Util::any { $_ eq $field } @fields) {
-            return $fmt;
+    while (my ($format, $fields) = each %datetime_fmt) {
+        if (List::Util::any { $_ eq $field } @{$fields}) {
+            return $format;
         }
     }
 
@@ -85,9 +75,6 @@ sub new {
 
 sub update {
     my ($self, $updates) = @_;
-
-    p $updates;
-    p @updateable_keys;
 
     foreach my $key (@updateable_keys) {
         $self->{$key} = $updates->{$key} if exists($updates->{$key});
@@ -118,8 +105,8 @@ sub _validate {
 sub _normalize_timestamps {
     my $self = shift;
 
-    while (my ($format, @fields) = each %datetime_fmt) {
-        foreach my $field (@fields) {
+    while (my ($format, $fields) = each %datetime_fmt) {
+        foreach my $field (@{$fields}) {
             next unless defined($self->{$field});
 
             my $value = $self->{$field};

@@ -28,7 +28,9 @@ get '/users' => sub {
         return $c->redirect_to('error');
     }
 
-    $c->stash(users => $users, birthday_fmt => Model::User::lookup_fmt 'birthday');
+    my $birthday_fmt = Model::User::lookup_fmt('birthday');
+    $c->log->debug($birthday_fmt);
+    $c->stash(users => $users, birthday_fmt => $birthday_fmt);
     $c->render('users');
 };
 
@@ -216,21 +218,42 @@ __DATA__
         :root {
             color-scheme: light dark; /* both supported */
         }
-        
+        html {
+            font-family: system-ui, sans-serif;
+        }
+        td {
+            padding-right: .5rem;
+        }
+        .inverse {
+            background-color: black;
+            color: white;
+        }
+        @media (prefers-color-scheme: dark) {
+            .inverse {
+                background-color: white;
+                font-weight: 600;
+                color: black;
+            }
+        }
     </style>
 </head>
 <body>
     %= form_for "/user/$id?_method=PUT" => (method => 'POST') => begin
-        %= label_for name => 'Name'
-        %= text_field name => $user->{name}, required => ''
-        <br>
-        %= label_for funds => 'Funds'
-        %= number_field funds => $user->{funds}, required => ''
-        <br>
-        %= label_for birthday => 'Birthday'
-        %= date_field birthday => $user->{birthday}, required => ''
-        <br>
-        %= submit_button 'Submit'
+        <fieldset style="width: fit-content;">
+            <legend class="inverse" style="padding: 3px 6px;">
+                edit user (id <%= $id %>)
+            </legend>
+            %= label_for name => 'name'
+            %= text_field name => $user->{name}, required => ''
+            <br>
+            %= label_for funds => 'funds'
+            %= number_field funds => $user->{funds}, required => ''
+            <br>
+            %= label_for birthday => 'birthday'
+            %= date_field birthday => $user->{birthday}, required => ''
+            <br>
+            %= submit_button 'Submit'            
+        </fieldset>
     % end
     %= link_to Back => '/users'
 </body>

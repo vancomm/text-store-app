@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use JSON qw//;
-use DDP;
 
 use Model::User;
 use Project::Util;
@@ -101,16 +100,11 @@ sub update {
 
         return if defined $user->{deleted_at};
 
-        # p %{$updates};
-        # p %{$user};
-
         {
             my $err = $user->update($updates);
             return (undef, $err) if defined $err;
         }
 
-        # p %{$user};
-        
         push(@lines, marshal_json($user) . "\n");
     }
     close $read_fh;
