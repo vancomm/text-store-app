@@ -11,7 +11,7 @@ use lib "$Bin/../lib";
 use Controller::User qw//;
 use Project::Config qw//;
 
-my $conf = Project::Config::load();
+my %conf = Project::Config::load();
 
 my $usage = "usage: $0 [-fh] <command>
 
@@ -29,7 +29,7 @@ options:
 ";
 
 my %opts = (
-    filename => $conf->{users_filename},
+    filename => $conf{users_filename},
 );
 
 my $res = GetOptions (

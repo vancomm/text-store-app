@@ -38,3 +38,7 @@
 - use and read abt Carp
   - [ ] (die -> croak where needed)
 - read abt caller
+
+### 2024-09-17
+
+- [ ] debug [Project::Util](./lib/Project/Util.pm)::try_parse_timestamp weird eval {} behaviour

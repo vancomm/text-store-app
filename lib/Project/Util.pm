@@ -29,7 +29,7 @@ sub try_parse_timestamp {
     my ($string, $format) = @_;
 
     my $date;
-    eval {        
+    eval {
         $date = Time::Piece->strptime($string, $format);
     };
     if ($@) {

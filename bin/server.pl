@@ -5,16 +5,29 @@ use warnings;
 
 use Mojolicious::Lite;
 use Time::Piece qw//;
+use DBI qw//;
+use DDP;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 use Model::User qw//;
 use Controller::User qw//;
+use DB::User qw//;
 use Project::Config qw//;
 
-my $conf = Project::Config::load();
+my %conf = Project::Config::load();
 
-my $users_file = $conf->{users_filename};
+my $users_file = $conf{users_filename};
+
+my $dbh_opts = {
+    RaiseError => 1,
+    AutoCommit => 0,
+};
+my $dbh = DBI->connect(
+    $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts,
+) or die 'could not connect to database: ' . DBI::errstr;
+
+my $uh = DB::User->new($dbh);
 
 get '/' => 'index';
 
