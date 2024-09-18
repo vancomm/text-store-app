@@ -1,6 +1,6 @@
 # Text Store App
 
-### 2024-09-11 
+### 2024-09-11
 
 - [x] CRUD (User, id + 3 fields (int, str, date))
 - date: Time::Piece (NB: DateTime)
@@ -30,10 +30,10 @@
 - [x] no Try::Tiny
 - [x] no FindBin in .pm
 - [x] extract controllers from models
-- [ ] use MySQL
+- [x] use MySQL
 - read DBI docs (NB: prepare/bind/execute)
 - select array of hashes (NB: Slice)
-- [ ] (optionally) Docker Compose
+- [x] (optionally) Docker Compose
 - [x] write schema to .sql
 - use and read abt Carp
   - [ ] (die -> croak where needed)
@@ -41,11 +41,11 @@
 
 ### 2024-09-17
 
-- [ ] debug [Project::Util](./lib/Project/Util.pm)::try_parse_timestamp weird eval {} behaviour
+- [x] debug [Project::Util](./lib/Project/Util.pm)::try_parse_timestamp weird eval {} behaviour
 
-- [ ] lowercase all SQL
+- [x] lowercase all SQL
 - [x] set PrintError => 0
 - [ ] try RaiseError => 0
-- [ ] checkout `map` and `grep`
-- [ ] mutate in-place array of hashes using `foreach`
-- [ ] DB::User->update: add query builder
+- [x] checkout `map` and `grep`
+- [x] mutate in-place array of hashes using `foreach`
+- [x] DB::User->update: add query builder

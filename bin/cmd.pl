@@ -16,7 +16,7 @@ my %conf = Project::Config::load();
 my $usage = "usage: $0 [-fh] <command>
 
 commands:
-    insert  <name> <height> <birthday>      Insert a new record into the 
+    insert  <name> <height> <birthday>      Insert a new record into the
                                             database. Returns record id
     get     <id>                            Read an existing record
             -a, --all                       Read all records
@@ -103,7 +103,7 @@ if ($command eq 'insert') {
     die "update error: $err\n" if defined($err);
 } elsif ($command eq 'remove') {
     die "remove expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
-    
+
     my $id = shift @ARGV;
     my $err = Controller::User::remove($filename, $id);
 

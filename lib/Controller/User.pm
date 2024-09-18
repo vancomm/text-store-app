@@ -3,7 +3,7 @@ package Controller::User;
 use strict;
 use warnings;
 
-use JSON qw//;
+use JSON::XS qw//;
 
 use Model::User;
 use Project::Util;
@@ -14,14 +14,14 @@ our @EXPORT_OK = qw/insert get get_all remove update/;
 sub unmarshal_json {
     my $text = shift;
 
-    my ($user, $err) = Model::User->new(JSON::decode_json($text));
+    my ($user, $err) = Model::User->new(JSON::XS::decode_json($text));
     return ($user, $err);
 }
 
 sub marshal_json {
     my $user = shift;
 
-    my $text = JSON::encode_json({ %{ $user } });
+    my $text = JSON::XS::encode_json({ %{ $user } });
     return $text;
 }
 
@@ -56,7 +56,7 @@ sub get {
 
     my ($user, $err) = unmarshal_json($text);
 
-    return (undef, 'unable to unmarshal database file: ' . $err) 
+    return (undef, 'unable to unmarshal database file: ' . $err)
         if defined $err;
 
     return (undef, 'not found') if defined $user->{deleted_at};
@@ -73,7 +73,7 @@ sub get_all {
     while (<$fh>) {
         my ($user, $err) = unmarshal_json($_);
 
-        return (undef, 'unable to unmarshal database file: ' . $err) 
+        return (undef, 'unable to unmarshal database file: ' . $err)
             if defined $err;
 
         push(@users, [$., $user]) unless defined $user->{deleted_at};

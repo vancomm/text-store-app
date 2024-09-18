@@ -3,7 +3,7 @@ package DB::User;
 use strict;
 use warnings;
 
-use Model::User;
+use Model::User qw//;
 
 use Exporter 'import';
 our @EXPORT_OK = qw/new select_all/;
@@ -22,39 +22,56 @@ sub new {
 
 sub select_all {
     my $self = shift;
-    
+
     my $sth = $self->{dbh}->prepare_cached(
-        'SELECT * FROM `user` WHERE deleted_at IS NULL',
+        'select * from `user` where deleted_at is null',
     );
     $sth->execute();
     my $rows = $sth->fetchall_arrayref({});
     $sth->finish();
 
-    return $rows;
+    return ($rows, undef);
 }
 
-sub select {
+sub select_one {
     my ($self, $id) = @_;
 
     my $sth = $self->{dbh}->prepare_cached(
-        'SELECT * FROM `user` WHERE deleted_at IS NULL AND id = ?',
+        'select * from `user` where deleted_at is null and id = ?',
     );
     $sth->execute($id);
-    my %row = %{ $sth->fetchrow_hashref() };
+    my $row = $sth->fetchrow_hashref();
     $sth->finish();
 
-    return %row;
+    return ($row, undef);
 }
 
-sub insert {
-    my ($self, $name, $funds, $birthday) = @_;
+my @insertable_keys = qw/name birthday funds/;
 
-    my $sth = $self->{dbh}->prepare_cached(
-        'INSERT INTO `user` (name, funds, birthday) VALUES (?, ?, ?)',
-    );
+sub insert {
+    my ($self, $params) = @_;
+
+    my $sql = 'insert into `user` (';
+    my @placeholders = ();
+    my @values = ();
+
+    foreach my $key (@insertable_keys) {
+        next unless exists $params->{$key};
+        push @placeholders, $key;
+        push @values, $params->{$key};
+    }
+
+    return (undef, 'no data to insert') unless @placeholders;
+
+    $sql .= join ', ', @placeholders;
+    $sql .= ') values (';
+    $sql .= join ', ', ('?') x @placeholders;
+    $sql .= ')';
+
+    my $sth = $self->{dbh}->prepare_cached($sql);
 
     eval {
-        $sth->execute($name, $funds, $birthday);
+        $sth->execute(@values);
         $sth->finish();
         $self->{dbh}->commit();
     };
@@ -63,89 +80,51 @@ sub insert {
         die 'unable to insert user: ' . $@;
     }
 
-    return $sth->{mysql_insertid};
+    return ($sth->{mysql_insertid}, undef);
 }
 
-# $uh->update($id, { name => $name })
-# $uh->update($id, { name => $name, funds => $funds })
+my @updateable_keys = qw/name birthday funds/;
 
 sub update {
     my ($self, $id, $updates) = @_;
 
-    eval {
-        if (exists $updates->{name}) {
-            $self->_update_name_no_commit($id, $updates->{name})
-        }
-        if (exists $updates->{funds}) {
-            $self->_update_funds_no_commit($id, $updates->{funds})
-        }
-        if (exists $updates->{birthday}) {
-            $self->_update_birthday_no_commit($id, $updates->{birthday})
-        }
-        $self->{dbh}->commit()
-    };
-    if ($@) {
-        eval { $self->{dbh}->rollback() };
-        die 'unable to update user: ' . $@;
+    my $sql = 'update `user` set ';
+    my @placeholders = ();
+    my @values = ();
+
+    foreach my $key (@updateable_keys) {
+        next unless exists $updates->{$key};
+        push @placeholders, $key . ' = ?';
+        push @values, $updates->{$key};
     }
-}
 
-sub _update_name_no_commit {
-    my ($self, $id, $name) = @_;
+    return 'nothing to update' unless @placeholders;
 
-    my $sth = $self->{dbh}->prepare_cached(
-        'UPDATE `user` SET name = ? WHERE id = ?',
-    );
+    $sql .= join ', ', @placeholders;
+
+    $sql .= ' where id = ?';
+    push @values, $id;
+
+    my $sth = $self->{dbh}->prepare_cached($sql);
 
     eval {
-        $sth->execute($name, $id);
+        $sth->execute(@values);
         $sth->finish();
+        $self->{dbh}->commit();
     };
     if ($@) {
         eval { $self->{dbh}->rollback() };
         die 'unable to update user: ' . $@;
     }
-}
 
-sub _update_funds_no_commit {
-    my ($self, $id, $funds) = @_;
-
-    my $sth = $self->{dbh}->prepare_cached(
-        'UPDATE `user` SET funds = ? WHERE id = ?',
-    );
-
-    eval {
-        $sth->execute($funds, $id);
-        $sth->finish();
-    };
-    if ($@) {
-        eval { $self->{dbh}->rollback() };
-        die 'unable to update user: ' . $@;
-    }
-}
-
-sub _update_birthday_no_commit {
-    my ($self, $id, $birthday) = @_;
-
-    my $sth = $self->{dbh}->prepare_cached(
-        'UPDATE `user` SET birthday = ? WHERE id = ?',
-    );
-
-    eval {
-        $sth->execute($birthday, $id);
-        $sth->finish();
-    };
-    if ($@) {
-        eval { $self->{dbh}->rollback() };
-        die 'unable to update user: ' . $@;
-    }
+    return;
 }
 
 sub remove {
     my ($self, $id) = @_;
 
     my $sth = $self->{dbh}->prepare_cached(
-        'UPDATE `user` SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?',
+        'update `user` set deleted_at = current_timestamp where id = ?',
     );
 
     eval {
@@ -157,6 +136,8 @@ sub remove {
         eval { $self->{dbh}->rollback() };
         die 'unable to delete user: ' . $@;
     }
+
+    return undef;
 }
 
 1;

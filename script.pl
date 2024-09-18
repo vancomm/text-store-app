@@ -2,47 +2,55 @@
 
 use strict;
 use warnings;
-use feature 'say';
 
 use DBI qw//;
-use DDP;
+use Data::Dumper qw/Dumper/;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/lib";
 use DB::User qw//;
+use Model::User qw//;
 use Project::Config qw//;
 
-my %conf = Project::Config::load();
+foreach (1..5) {
+    warn 'found: ' . Model::User::lookup_fmt('birthday');
+    warn "\n";
+}
 
-my $users_file = $conf{users_filename};
+# my %conf = Project::Config::load();
 
-my $dbh_opts = {
-    RaiseError => 1,
-    AutoCommit => 0,
-};
-my $dbh = DBI->connect(
-    $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts,
-) or die 'could not connect to database: ' . DBI::errstr;
+# my $dbh_opts = {
+#     RaiseError => 1,
+#     AutoCommit => 0,
+# };
+# my $dbh = DBI->connect(
+#     $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts,
+# ) or die 'could not connect to database: ' . DBI::errstr;
 
-my $uh = DB::User->new($dbh);
+# my $uh = DB::User->new($dbh);
 
-my $new_id = $uh->insert('Bbb', 25, '1999-12-31');
-say 'inserted user id: ' . $new_id;
+# my $new_id = $uh->insert({name => 'Bbb', funds => 25, birthday => '1999-12-31'});
+# warn $new_id;
 
-my %user = $uh->select($new_id);
-p %user;
+# my %user = $uh->select(1);
+# print Dumper(%user);
 
-my $all_users = $uh->select_all();
-p $all_users;
+# my $all_users = $uh->select_all();
+# p $all_users;
 
-$uh->update($new_id, { name => 'Ccc' });
+# $uh->update(1, { name => 'Ccc', funds => 1, pwn => 'yes' });
 
-%user = $uh->select($new_id);
-p %user;
+# %user = $uh->select(1);
+# print Dumper(%user);
 
-$uh->remove($new_id);
+# $uh->update(1, { pwn => 'yes' });
 
-$all_users = $uh->select_all();
-p $all_users;
+# %user = $uh->select(1);
+# print Dumper(%user);
 
-$dbh->disconnect();
+# $uh->remove($new_id);
+
+# $all_users = $uh->select_all();
+# p $all_users;
+
+# $dbh->disconnect();

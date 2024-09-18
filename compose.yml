@@ -1,0 +1,37 @@
+services:
+
+  server:
+    build:
+      context: .
+    image: text-store-server:devel
+    container_name: text-store-server
+    ports:
+      - 8000:8000
+    links:
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: env/server.env
+    environment:
+      - DB_HOST=db
+
+  db:
+    image: mysql:latest
+    container_name: text-store-db
+    env_file:
+      - env/mysql.env
+      - env/server.env
+    environment:
+      - MYSQL_ROOT_HOST=db
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$DB_USER --password=$$DB_PASSWORD
+      start_period: 3s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:

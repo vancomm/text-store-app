@@ -45,7 +45,7 @@ sub normalize_timestamp {
     my ($date, $err) = try_parse_timestamp($timestamp_string, $format);
 
     return (undef, $err) if defined $err;
-    
+
     my $normalized = $date->strftime($format);
 
     return ($normalized, undef);

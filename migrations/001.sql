@@ -1,9 +1,9 @@
-CREATE TABLE IF NOT EXISTS `user` (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    funds DECIMAL NOT NULL,
-    birthday DATE NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL
+create table if not exists `user` (
+    id int primary key auto_increment,
+    name varchar(255) not null,
+    funds decimal not null,
+    birthday date not null,
+    created_at timestamp not null default current_timestamp,
+    updated_at timestamp not null default current_timestamp on update current_timestamp,
+    deleted_at timestamp null
 );

@@ -2,12 +2,9 @@ package Model::User;
 
 use strict;
 use warnings;
-use feature 'say';
 
 use List::Util qw//;
-use JSON qw//;
 use File::Touch 0.12 qw//;
-use DDP;
 
 use Project::Util;
 
@@ -47,29 +44,25 @@ my %datetime_fmt = (
 sub lookup_fmt {
     my $field = shift;
 
-    while (my ($format, $fields) = each %datetime_fmt) {
-        if (List::Util::any { $_ eq $field } @{$fields}) {
-            return $format;
-        }
-    }
-
-    return;
+    return List::Util::first {
+        List::Util::any { $_ eq $field } @{$datetime_fmt{$_}}
+    } keys %datetime_fmt;
 }
 
 sub new {
     my ($class, $args) = @_;
 
     my $self = _prototype();
-    
+
     foreach (@all_keys) {
         $self->{$_} = $args->{$_} if defined($args->{$_});
     }
 
     bless $self, $class;
-    
+
     my $err = $self->_validate();
     return (undef, $err) if defined $err;
-    
+
     return ($self, undef);
 }
 
@@ -92,12 +85,12 @@ sub _validate {
 
     my $funds = $self->{funds};
     if (defined($funds)) {
-        return 'funds: must be a number' 
+        return 'funds: must be a number'
             unless $funds and $funds =~ /^-?\d+(.\d+)?$/;
     }
 
     my $err = $self->_normalize_timestamps();
-    return $err if defined $err;    
+    return $err if defined $err;
 
     return;
 }
@@ -114,7 +107,7 @@ sub _normalize_timestamps {
                 $value, $format,
             );
 
-            return qq/field $field => "$value" does not match format "$format"/ 
+            return qq/field $field => "$value" does not match format "$format"/
                 if defined($err);
 
             unless ($value eq $normalized) {

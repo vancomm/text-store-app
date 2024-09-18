@@ -6,18 +6,14 @@ use warnings;
 use Mojolicious::Lite;
 use Time::Piece qw//;
 use DBI qw//;
-use DDP;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 use Model::User qw//;
-use Controller::User qw//;
 use DB::User qw//;
 use Project::Config qw//;
 
 my %conf = Project::Config::load();
-
-my $users_file = $conf{users_filename};
 
 my $dbh_opts = {
     RaiseError => 1,
@@ -35,7 +31,7 @@ get '/' => 'index';
 get '/users' => sub {
     my $c = shift;
 
-    my ($users, $err) = Controller::User::get_all($users_file);
+    my ($users, $err) = $uh->select_all();
 
     if (defined($err)) {
         $c->flash(message => $err);
@@ -43,7 +39,6 @@ get '/users' => sub {
     }
 
     my $birthday_fmt = Model::User::lookup_fmt('birthday');
-    $c->log->debug($birthday_fmt);
     $c->stash(users => $users, birthday_fmt => $birthday_fmt);
     $c->render('users');
 };
@@ -51,20 +46,20 @@ get '/users' => sub {
 post '/user' => sub {
     my $c = shift;
 
-    my ($id, $err) = Controller::User::insert($users_file, $c->req->params->to_hash);
+    my ($id, $err) = $uh->insert($c->req->params->to_hash);
     if (defined $err) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
-    } 
+    }
     $c->flash(message => 'Created record id ' . $id);
     $c->redirect_to('success');
 };
 
 get '/user/edit/:id' => sub {
     my $c = shift;
-    
+
     my $id = $c->param('id');
-    my ($user, $err) = Controller::User::get($users_file, $id);
+    my ($user, $err) = $uh->select_one($id);
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
@@ -75,9 +70,9 @@ get '/user/edit/:id' => sub {
 
 del '/user/:id' => sub {
     my $c = shift;
-    
+
     my $id = $c->param('id');
-    my $err = Controller::User::remove($users_file, $id);
+    my $err = $uh->remove($id);
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
@@ -87,11 +82,11 @@ del '/user/:id' => sub {
 
 put '/user/:id' => sub {
     my $c = shift;
-    
+
     my $id = $c->param('id');
     my $updates = $c->req->params->to_hash;
     $c->log->debug($updates);
-    my ($user, $err) = Controller::User::update($users_file, $id, $updates);
+    my ($user, $err) = $uh->update($id, $updates);
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
@@ -187,15 +182,15 @@ __DATA__
             </tr>
         </thead>
         <tbody>
-        % for my $pair (@$users) {
-            % my ($id, $user) = @$pair;
+        % for my $user (@{$users}) {
             <tr>
                 % use POSIX qw//;
                 % use Time::Piece qw//;
                 % my $now = Time::Piece::gmtime;
                 % my $dob = Time::Piece->strptime($user->{birthday}, $birthday_fmt);
                 % my $age = POSIX::floor(($now - $dob) / (86400 * 365));
-                
+                % my $id = $user->{id};
+
                 <td style="text-align: right;">
                     %= $id
                 </td>
@@ -266,7 +261,7 @@ __DATA__
             %= label_for birthday => 'birthday'
             %= date_field birthday => $user->{birthday}, required => ''
             <br>
-            %= submit_button 'Submit'            
+            %= submit_button 'Submit'
         </fieldset>
     % end
     %= link_to Back => '/users'
