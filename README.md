@@ -49,3 +49,14 @@
 - [x] checkout `map` and `grep`
 - [x] mutate in-place array of hashes using `foreach`
 - [x] DB::User->update: add query builder
+
+### 2024-09-20
+
+- [ ] [Store](./lib/Store.pm): store interface
+  - `sub some_method { die 'abstract method invoked'; }`
+- [ ] Model:
+  - [ ] [Model](./lib/Model.pm) - define connection logic (reuse? cache?)
+  - [ ] [Model::User](./lib/Model/User.pm) - define User CRUD
+  - NB: DBI::connect_cached
+  - [ ] test `select sleep(400);`, kill, terminate, destroy connection, network disconnect
+  - [ ] add application name to DSN
