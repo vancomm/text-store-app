@@ -9,8 +9,8 @@ use DBI qw//;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
-use Model::User qw//;
-use DB::User qw//;
+use Store::DB::User qw//;
+use Controller::User qw//;
 use Project::Config qw//;
 
 my %conf = Project::Config::load();
@@ -24,21 +24,22 @@ my $dbh = DBI->connect(
     $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts,
 ) or die 'could not connect to database: ' . DBI::errstr;
 
-my $uh = DB::User->new($dbh);
+my $store = Store::DB::User->new($dbh);
+my $uh = Controller::User->new($store);
 
 get '/' => 'index';
 
 get '/users' => sub {
     my $c = shift;
 
-    my ($users, $err) = $uh->select_all();
+    my ($users, $err) = $uh->get_all();
 
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
     }
 
-    my $birthday_fmt = Model::User::lookup_fmt('birthday');
+    my $birthday_fmt = Store::DB::User::lookup_fmt('birthday');
     $c->stash(users => $users, birthday_fmt => $birthday_fmt);
     $c->render('users');
 };
@@ -46,7 +47,7 @@ get '/users' => sub {
 post '/user' => sub {
     my $c = shift;
 
-    my ($id, $err) = $uh->insert($c->req->params->to_hash);
+    my ($id, $err) = $uh->create($c->req->params->to_hash);
     if (defined $err) {
         $c->flash(message => $err);
         return $c->redirect_to('error');
@@ -59,7 +60,7 @@ get '/user/edit/:id' => sub {
     my $c = shift;
 
     my $id = $c->param('id');
-    my ($user, $err) = $uh->select_one($id);
+    my ($user, $err) = $uh->find($id);
     if (defined($err)) {
         $c->flash(message => $err);
         return $c->redirect_to('error');

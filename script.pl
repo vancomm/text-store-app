@@ -8,12 +8,11 @@ use Data::Dumper qw/Dumper/;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/lib";
-use DB::User qw//;
-use Model::User qw//;
+use Store::DB::User qw//;
 use Project::Config qw//;
 
 foreach (1..5) {
-    warn 'found: ' . Model::User::lookup_fmt('birthday');
+    warn 'found: ' . Store::DB::User::lookup_fmt('birthday');
     warn "\n";
 }
 
@@ -27,7 +26,7 @@ foreach (1..5) {
 #     $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts,
 # ) or die 'could not connect to database: ' . DBI::errstr;
 
-# my $uh = DB::User->new($dbh);
+# my $uh = Store::DB::User->new($dbh);
 
 # my $new_id = $uh->insert({name => 'Bbb', funds => 25, birthday => '1999-12-31'});
 # warn $new_id;

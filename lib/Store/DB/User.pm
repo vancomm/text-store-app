@@ -1,12 +1,25 @@
-package DB::User;
+package Store::DB::User;
 
 use strict;
 use warnings;
 
-use Model::User qw//;
+use List::Util qw//;
 
 use Exporter 'import';
-our @EXPORT_OK = qw/new select_all/;
+our @EXPORT_OK = qw/lookup_fmt new insert select_one select_all update remove/;
+
+my %datetime_fmt = (
+    '%Y-%m-%d' => [qw/birthday/],
+    '%Y-%m-%dT%H:%M:%S' => [qw/created_at updated_at deleted_at/],
+);
+
+sub lookup_fmt {
+    my ($field) = @_;
+
+    return List::Util::first {
+        List::Util::any { $_ eq $field } @{$datetime_fmt{$_}}
+    } keys %datetime_fmt;
+}
 
 sub new {
     my ($class, $dbh) = @_;
@@ -15,7 +28,7 @@ sub new {
         dbh => $dbh,
     };
 
-    bless $self, $class;
+    bless($self, $class);
 
     return $self;
 }
@@ -137,7 +150,7 @@ sub remove {
         die 'unable to delete user: ' . $@;
     }
 
-    return undef;
+    return;
 }
 
 1;

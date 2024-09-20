@@ -8,6 +8,7 @@ use Getopt::Long::Subcommand;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
+use Store::Text::User qw//;
 use Controller::User qw//;
 use Project::Config qw//;
 
@@ -16,12 +17,12 @@ my %conf = Project::Config::load();
 my $usage = "usage: $0 [-fh] <command>
 
 commands:
-    insert  <name> <height> <birthday>      Insert a new record into the
+    create  <name> <funds> <birthday>       Insert a new record into the
                                             database. Returns record id
-    get     <id>                            Read an existing record
+    read    <id>                            Read an existing record
             -a, --all                       Read all records
     update  <id> [-s, --set <key>=<value>]  Update an existing record
-    remove  <id>                            Delete an existing record
+    delete  <id>                            Delete an existing record
 
 options:
     -f, --filename <FILE>                   Path to database file
@@ -38,10 +39,10 @@ my $res = GetOptions (
         'h|help' => sub { say $usage; exit 0; },
     },
     subcommands => {
-        insert => {},
-        get => {
+        create => {},
+        read => {
             options => {
-                'a|all' => \$opts{get_all},
+                'a|all' => \$opts{read_all},
             }
         },
         update => {
@@ -49,44 +50,47 @@ my $res = GetOptions (
                 's|set=s%' => \$opts{updates},
             }
         },
-        remove => {},
+        delete => {},
     },
 );
 
 die $usage unless $res->{success};
-die "no command provided\n$usage" unless @{$res->{subcommand}};
+die "error: no command provided\n$usage" unless @{$res->{subcommand}};
 
 my $command = shift @{$res->{subcommand}};
 my $nargs = @ARGV;
-my $filename = $opts{filename};
 
-if ($command eq 'insert') {
-    die "insert expected 3 args, but received $nargs\n$usage" if $nargs != 3;
+my $store = Store::Text::User->new($opts{filename});
+
+my $uh = Controller::User->new($store);
+
+if ($command eq 'create') {
+    die "error: create expected 3 args, but received $nargs\n$usage" if $nargs != 3;
 
     my ($name, $funds, $birthday) = @ARGV;
-    my ($id, $err) = Controller::User::insert(
-        $filename, {name => $name, funds => $funds, birthday => $birthday},
+    my ($id, $err) = $uh->create(
+        {name => $name, funds => $funds, birthday => $birthday},
     );
 
-    die "insert error: $err\n" if defined $err;
+    die "create error: $err\n" if defined $err;
 
     say $id;
-} elsif ($command eq 'get') {
-    if (defined $opts{get_all}) {
-        my ($users, $err) = Controller::User::get_all($filename);
+} elsif ($command eq 'read') {
+    if (defined $opts{read_all}) {
+        
+        my ($users, $err) = $uh->get_all();
 
-        die "get all error: $err\n" if defined $err;
+        die "read all error: $err\n" if defined $err;
 
-        foreach my $pair (@$users) {
-            my ($id, $user) = @$pair;
-            say join ' ', $id, $user->{name}, $user->{funds}, $user->{birthday};
+        foreach my $user (@$users) {            
+            say join ' ', $user->{id}, $user->{name}, $user->{funds}, $user->{birthday};
         }
     } else {
         die "read expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
 
         my $id = shift @ARGV;
 
-        my ($user, $err) = Controller::User::get($filename, $id);
+        my ($user, $err) = $uh->find($id);
 
         die "read error: $err\n" if defined $err;
 
@@ -98,14 +102,14 @@ if ($command eq 'insert') {
 
     my $id = shift @ARGV;
     my $updates = $opts{updates};
-    my $err = Controller::User::update($filename, $id, $updates);
+    my $err = $uh->update($id, $updates);
 
     die "update error: $err\n" if defined($err);
-} elsif ($command eq 'remove') {
-    die "remove expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
+} elsif ($command eq 'delete') {
+    die "delete expected 1 arg, but received $nargs\n$usage" if $nargs != 1;
 
     my $id = shift @ARGV;
-    my $err = Controller::User::remove($filename, $id);
+    my $err = $uh->remove($id);
 
     die "delete error: $err\n" if defined($err);
 }
