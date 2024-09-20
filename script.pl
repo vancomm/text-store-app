@@ -11,7 +11,7 @@ use lib "$Bin/lib";
 use Store::DB::User qw//;
 use Project::Config qw//;
 
-foreach (1..5) {
+for (1..5) {
     warn 'found: ' . Store::DB::User::lookup_fmt('birthday');
     warn "\n";
 }

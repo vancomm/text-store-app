@@ -82,7 +82,7 @@ if ($command eq 'create') {
 
         die "read all error: $err\n" if defined $err;
 
-        foreach my $user (@$users) {            
+        for my $user (@$users) {            
             say join ' ', $user->{id}, $user->{name}, $user->{funds}, $user->{birthday};
         }
     } else {

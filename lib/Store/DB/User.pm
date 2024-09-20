@@ -68,7 +68,7 @@ sub insert {
     my @placeholders = ();
     my @values = ();
 
-    foreach my $key (@insertable_keys) {
+    for my $key (@insertable_keys) {
         next unless exists $params->{$key};
         push @placeholders, $key;
         push @values, $params->{$key};
@@ -105,7 +105,7 @@ sub update {
     my @placeholders = ();
     my @values = ();
 
-    foreach my $key (@updateable_keys) {
+    for my $key (@updateable_keys) {
         next unless exists $updates->{$key};
         push @placeholders, $key . ' = ?';
         push @values, $updates->{$key};

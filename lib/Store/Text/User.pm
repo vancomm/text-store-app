@@ -54,7 +54,7 @@ sub _normalize_timestamps {
     my ($user) = @_;
 
     while (my ($format, $fields) = each %datetime_fmt) {
-        foreach my $field (@{$fields}) {
+        for my $field (@{$fields}) {
             next unless defined($user->{$field});
 
             my $value = $user->{$field};
@@ -77,7 +77,7 @@ sub _normalize_timestamps {
 sub _validate {
     my ($user) = @_;
 
-    foreach my $key (@required_keys) {
+    for my $key (@required_keys) {
         return "user field $key is required" unless defined($user->{$key});
     }
 
@@ -98,7 +98,7 @@ sub _new_user {
 
     my $user = _prototype();
 
-    foreach (@all_keys) {
+    for (@all_keys) {
         $user->{$_} = $args->{$_} if defined($args->{$_});
     }
 
@@ -111,7 +111,7 @@ sub _new_user {
 sub _update {
     my ($user, $updates) = @_;
 
-    foreach my $key (@updateable_keys) {
+    for my $key (@updateable_keys) {
         $user->{$key} = $updates->{$key} if exists($updates->{$key});
     }
 
@@ -159,7 +159,7 @@ sub insert {
     File::Touch::touch($self->{filename});
 
     open(my $fh, '>>', $self->{filename}) or die $!;
-    print $fh _marshal_json($user) . "\n";
+    print {$fh} _marshal_json($user) . "\n";
     close $fh;
 
     my $id = Project::Util::count_lines $self->{filename};
@@ -263,7 +263,7 @@ sub update {
 
     open(my $write_fh, '>', $self->{filename}) or die $!;
     for (@lines) {
-        print $write_fh $_;
+        print {$write_fh} $_;
     }
     close $write_fh;
 
