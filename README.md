@@ -64,7 +64,7 @@
 ### 2024-09-23
 
 - [x] remove `use Exporter` and `@EXPORT_OK`
-- [ ] rename User->sleep -> User->test_long_op
+- [x] rename User->sleep -> User->test_long_op
 - [ ] return error instead of `die` in Model::User
 - [ ] modes (develoment/production)
 - [ ] figure out error codes (objects?)

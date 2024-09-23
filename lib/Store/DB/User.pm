@@ -89,7 +89,7 @@ sub insert {
     };
     if ($@) {
         eval { $self->{dbh}->rollback() };
-        die 'unable to insert user: ' . $@;
+        return (undef, 'unable to insert user: ' . $@);
     }
 
     return ($sth->{mysql_insertid}, undef);
@@ -126,7 +126,7 @@ sub update {
     };
     if ($@) {
         eval { $self->{dbh}->rollback() };
-        die 'unable to update user: ' . $@;
+        return (undef, 'unable to update user: ' . $@);
     }
 
     return;
@@ -146,7 +146,7 @@ sub remove {
     };
     if ($@) {
         eval { $self->{dbh}->rollback() };
-        die 'unable to delete user: ' . $@;
+        return (undef, 'unable to delete user: ' . $@);
     }
 
     return;
