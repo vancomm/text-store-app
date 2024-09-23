@@ -31,13 +31,6 @@ die $err if defined($err);
 my $model = Model::User->new($conn_cb);
 my $uh = Controller::User->new($model);
 
-# my $dbh = DBI->connect(
-#     $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts,
-# ) or die 'could not connect to database: ' . DBI::errstr;
-
-# my $store = Store::DB::User->new($dbh);
-# my $uh = Controller::User->new($store);
-
 get '/' => 'index';
 
 get '/users' => sub {

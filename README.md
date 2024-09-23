@@ -58,5 +58,24 @@
   - [x] [Model](./lib/Model.pm) - define connection logic (reuse? cache?)
   - [x] [Model::User](./lib/Model/User.pm) - define User CRUD
   - NB: DBI::connect_cached
-  - [x] test `select sleep(400);`, kill, terminate, destroy connection, network disconnect
+  - [x] test `select sleep(400);`, kill, ~~terminate,~~ destroy connection, network disconnect
   - [ ] add application name to DSN
+
+### 2024-09-23
+
+- [ ] remove `use Exporter` and `@EXPORT_OK`
+- [ ] rename User->sleep -> User->test_long_op
+- [ ] return error instead of `die` in Model::User
+- [ ] modes (develoment/production)
+- [ ] figure out error codes (objects?)
+- NB: testing:
+  - Perl Tests (book)
+  - `prove` (CLI utility)
+  - Test::More
+  - [Test::Most (yt)](https://www.youtube.com/watch?v=Gwg4cn3IxNI&list=PLvHhdy-GnNXCjZHNkOk4_tkH4b1PW7z8x)
+- [ ] unit tests
+- [ ] functional tests
+  - NB: LWP (HTTP client)
+  - NB: Mojo::UserAgent + [Mojo::Promise](https://docs.mojolicious.org/Mojo/Promise)
+  - NB: AnyEvent, [AE](https://metacpan.org/pod/AE)
+  - NB: [Coro](https://metacpan.org/pod/Coro)
