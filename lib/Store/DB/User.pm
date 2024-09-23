@@ -1,5 +1,7 @@
 package Store::DB::User;
 
+use base qw/Store/;
+
 use strict;
 use warnings;
 

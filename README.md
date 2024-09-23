@@ -52,11 +52,11 @@
 
 ### 2024-09-20
 
-- [ ] [Store](./lib/Store.pm): store interface
+- [x] [Store](./lib/Store.pm): store interface
   - `sub some_method { die 'abstract method invoked'; }`
-- [ ] Model:
-  - [ ] [Model](./lib/Model.pm) - define connection logic (reuse? cache?)
-  - [ ] [Model::User](./lib/Model/User.pm) - define User CRUD
+- Model:
+  - [x] [Model](./lib/Model.pm) - define connection logic (reuse? cache?)
+  - [x] [Model::User](./lib/Model/User.pm) - define User CRUD
   - NB: DBI::connect_cached
-  - [ ] test `select sleep(400);`, kill, terminate, destroy connection, network disconnect
+  - [x] test `select sleep(400);`, kill, terminate, destroy connection, network disconnect
   - [ ] add application name to DSN

@@ -33,6 +33,11 @@ sub find {
 sub get_all {
     my ($self) = @_;
 
+    {
+        my (undef, $err) = $self->{store}->sleep(); # BUG testing: this is intentional
+        warn $err;
+    }
+
     return $self->{store}->select_all();
 }
 

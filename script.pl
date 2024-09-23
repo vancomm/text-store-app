@@ -8,13 +8,44 @@ use Data::Dumper qw/Dumper/;
 
 use FindBin qw/$Bin/;
 use lib "$Bin/lib";
-use Store::DB::User qw//;
+# use Store::DB::User qw//;
+# use Store::Text::User qw//;
+use Model qw//;
+use Model::User qw//;
+use Controller::User qw//;
 use Project::Config qw//;
+use DDP;
 
-for (1..5) {
-    warn 'found: ' . Store::DB::User::lookup_fmt('birthday');
-    warn "\n";
+my %conf = Project::Config::load();
+
+my $dbh_opts = {
+    RaiseError => 1,
+    PrintError => 0,
+    AutoCommit => 0,
+};
+my ($conn_cb, $err) = Model::get_connect_cb(
+    $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts
+);
+
+die $err if defined($err);
+
+my $model = Model::User->new($conn_cb);
+my $uh = Controller::User->new($model);
+
+{
+    my ($users, $err) = $uh->get_all();
+    p $users;
 }
+
+
+# my $uh = Store::Text::User->new('users.jsonl');
+
+# $uh->sleep();
+
+# for (1..5) {
+#     warn 'found: ' . Store::DB::User::lookup_fmt('birthday');
+#     warn "\n";
+# }
 
 # my %conf = Project::Config::load();
 

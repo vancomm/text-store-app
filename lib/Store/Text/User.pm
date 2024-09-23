@@ -1,5 +1,7 @@
 package Store::Text::User;
 
+use base qw/Store/;
+
 use strict;
 use warnings;
 
