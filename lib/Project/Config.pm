@@ -5,9 +5,6 @@ use warnings;
 
 use List::Util qw//;
 
-use Exporter 'import';
-our @EXPORT_OK = qw/load/;
-
 my %conf;
 
 sub _mysql_timeouts {

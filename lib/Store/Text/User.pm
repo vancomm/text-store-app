@@ -11,9 +11,6 @@ use File::Touch qw//;
 
 use Project::Util qw//;
 
-use Exporter 'import';
-our @EXPORT_OK = qw/lookup_fmt new insert select_one select_all update remove/;
-
 sub _prototype {
     return {
         name => undef,

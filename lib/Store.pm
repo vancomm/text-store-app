@@ -5,9 +5,6 @@ use warnings;
 
 use Carp qw/croak/;
 
-use Exporter 'import';
-our @EXPORT_OK = qw//;
-
 sub insert {
     my ($self, $params) = @_;
 

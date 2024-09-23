@@ -5,9 +5,6 @@ use warnings;
 
 use Time::Piece qw//;
 
-use Exporter 'import';
-our @EXPORT_OK = qw/now_iso count_lines normalize_timestamp/;
-
 sub now_iso {
     my $text = Time::Piece::gmtime->strftime('%Y-%m-%dT%H:%M:%S');
     return $text;

@@ -3,9 +3,6 @@ package Model::User;
 use strict;
 use warnings;
 
-use Exporter 'import';
-our @EXPORT_OK = qw//;
-
 my %datetime_fmt = (
     '%Y-%m-%d' => [qw/birthday/],
     '%Y-%m-%dT%H:%M:%S' => [qw/created_at updated_at deleted_at/],

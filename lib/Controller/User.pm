@@ -3,9 +3,6 @@ package Controller::User;
 use strict;
 use warnings;
 
-use Exporter 'import';
-our @EXPORT_OK = qw/new create find get_all update remove/;
-
 sub new {
     my ($class, $store) = @_;
 

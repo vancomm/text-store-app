@@ -7,9 +7,6 @@ use warnings;
 
 use List::Util qw//;
 
-use Exporter 'import';
-our @EXPORT_OK = qw/lookup_fmt new insert select_one select_all update remove/;
-
 my %datetime_fmt = (
     '%Y-%m-%d' => [qw/birthday/],
     '%Y-%m-%dT%H:%M:%S' => [qw/created_at updated_at deleted_at/],
