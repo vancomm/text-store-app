@@ -65,7 +65,7 @@
 
 - [x] remove `use Exporter` and `@EXPORT_OK`
 - [x] rename User->sleep -> User->test_long_op
-- [ ] return error instead of `die` in Model::User
+- [x] return error instead of `die` in Model::User
 - [ ] modes (develoment/production)
 - [ ] figure out error codes (objects?)
 - NB: testing:
@@ -73,8 +73,8 @@
   - `prove` (CLI utility)
   - Test::More
   - [Test::Most (yt)](https://www.youtube.com/watch?v=Gwg4cn3IxNI&list=PLvHhdy-GnNXCjZHNkOk4_tkH4b1PW7z8x)
-- [ ] unit tests
-- [ ] functional tests
+- [x] unit tests
+- [x] functional tests
   - NB: LWP (HTTP client)
   - NB: Mojo::UserAgent + [Mojo::Promise](https://docs.mojolicious.org/Mojo/Promise)
   - NB: AnyEvent, [AE](https://metacpan.org/pod/AE)
