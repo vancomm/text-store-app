@@ -3,12 +3,14 @@ package Model::User;
 use strict;
 use warnings;
 
+use List::Util qw//;
+
 my %datetime_fmt = (
     '%Y-%m-%d' => [qw/birthday/],
     '%Y-%m-%dT%H:%M:%S' => [qw/created_at updated_at deleted_at/],
 );
 
-sub lookup_fmt {
+sub lookup_fmt {    
     my ($field) = @_;
 
     return List::Util::first {
@@ -26,6 +28,12 @@ sub new {
     bless($self, $class);
 
     return $self;
+}
+
+sub _conn {
+    my $self = shift;
+
+    return $self->{conn_cb}->();
 }
 
 sub select_all {
@@ -48,7 +56,7 @@ sub select_all {
 sub select_one {
     my ($self, $id) = @_;
 
-    my ($dbh, $err) = $self->{conn_cb}->();
+    my ($dbh, $err) = $self->_conn();
 
     return (undef, $err) if defined($err);
 
@@ -67,7 +75,7 @@ my @insertable_keys = qw/name birthday funds/;
 sub insert {
     my ($self, $params) = @_;
 
-    my ($dbh, $err) = $self->{conn_cb}->();
+    my ($dbh, $err) = $self->_conn();
 
     return (undef, $err) if defined($err);
 
@@ -108,7 +116,7 @@ my @updateable_keys = qw/name birthday funds/;
 sub update {
     my ($self, $id, $updates) = @_;
     
-    my ($dbh, $err) = $self->{conn_cb}->();
+    my ($dbh, $err) = $self->_conn();
 
     return $err if defined($err);
 
@@ -147,7 +155,7 @@ sub update {
 sub remove {
     my ($self, $id) = @_;
 
-    my ($dbh, $err) = $self->{conn_cb}->();
+    my ($dbh, $err) = $self->_conn();
 
     return $err if defined($err);
 
@@ -171,7 +179,7 @@ sub remove {
 sub test_long_op {
     my ($self, $id) = @_;
 
-    my ($dbh, $err) = $self->{conn_cb}->();
+    my ($dbh, $err) = $self->_conn();
 
     return $err if defined($err);
 

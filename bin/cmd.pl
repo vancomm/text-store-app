@@ -6,8 +6,8 @@ use feature 'say';
 
 use Getopt::Long::Subcommand;
 
-use FindBin qw/$Bin/;
-use lib "$Bin/../lib";
+use FindBin qw//;
+use lib "$FindBin::Bin/../lib";
 use Store::Text::User qw//;
 use Controller::User qw//;
 use Project::Config qw//;

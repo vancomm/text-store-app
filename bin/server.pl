@@ -7,8 +7,8 @@ use Mojolicious::Lite;
 use Time::Piece qw//;
 use DBI qw//;
 
-use FindBin qw/$Bin/;
-use lib "$Bin/../lib";
+use FindBin qw//;
+use lib "$FindBin::Bin/../lib";
 use Model qw//;
 use Model::User qw//;
 use Store::DB::User qw//;
@@ -22,9 +22,7 @@ my $dbh_opts = {
     PrintError => 0,
     AutoCommit => 0,
 };
-my ($conn_cb, $err) = Model::get_connect_cb(
-    $conf{db}{dsn}, $conf{db}{user}, $conf{db}{password}, $dbh_opts
-);
+my ($conn_cb, $err) = Model::get_connect_cb(%{$conf{db}}, opts => $dbh_opts);
 
 die $err if defined($err);
 
