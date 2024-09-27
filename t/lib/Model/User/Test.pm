@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 use base qw(Test::Class);
-use Test::Most qw/no_plan/;
+
+use Test::Most;
 use List::Util;
 use DBI;
 
@@ -158,11 +159,11 @@ sub _revert_migration_files {
 sub prepare_db : Test(startup => 4) {
     my ($self) = @_;
 
-    my $db_host = $ENV{TEST_DB_HOST};
-    my $db_port = $ENV{TEST_DB_PORT};
-    my $db_user = $ENV{TEST_DB_USER};
-    my $db_password = $ENV{TEST_DB_PASSWORD};
-    my $db_name = $ENV{TEST_DB_NAME};
+    my $db_host = $ENV{DB_HOST};
+    my $db_port = $ENV{DB_PORT};
+    my $db_user = $ENV{DB_USER};
+    my $db_password = $ENV{DB_PASSWORD};
+    my $db_name = $ENV{DB_NAME};
 
     ok List::Util::all { defined $_ }
         ($db_host, $db_port, $db_user, $db_password, $db_name) 
