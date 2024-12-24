@@ -43,12 +43,20 @@ sub select_all {
 
     return (undef, $err) if defined($err);
 
-    my $sth = $dbh->prepare_cached(
-        'select * from `user` where deleted_at is null',
-    );
-    $sth->execute();
-    my $rows = $sth->fetchall_arrayref({});
-    $sth->finish();
+    my $rows;
+    eval {
+        my $sth = $dbh->prepare_cached(
+            'select * from `user` where deleted_at is null',
+        );
+        $sth->execute();
+        $rows = $sth->fetchall_arrayref({});
+        $sth->finish();
+    };
+    if ($@) {
+        my $err = $@;
+        eval { $dbh->rollback() };
+        return (undef, 'unable to select users: ' . $err);
+    }
 
     return ($rows, undef);
 }
@@ -60,12 +68,20 @@ sub select_one {
 
     return (undef, $err) if defined($err);
 
-    my $sth = $dbh->prepare_cached(
-        'select * from `user` where deleted_at is null and id = ?',
-    );
-    $sth->execute($id);
-    my $row = $sth->fetchrow_hashref();
-    $sth->finish();
+    my $row;
+    eval {
+        my $sth = $dbh->prepare_cached(
+            'select * from `user` where deleted_at is null and id = ?',
+        );
+        $sth->execute($id);
+        $row = $sth->fetchrow_hashref();
+        $sth->finish();
+    };
+    if ($@) {
+        my $err = $@;
+        eval { $dbh->rollback() };
+        return (undef, 'unable to select user: ' . $err);
+    }
 
     return ($row, undef);
 }
@@ -96,19 +112,22 @@ sub insert {
     $sql .= join ', ', ('?') x @placeholders;
     $sql .= ')';
 
-    my $sth = $dbh->prepare_cached($sql);
-
+    my $sth;
+    my $inserted_id;
     eval {
+        $sth = $dbh->prepare_cached($sql);
         $sth->execute(@values);
-        $sth->finish();
         $dbh->commit();
+        $inserted_id = $sth->{mysql_insertid};
+        $sth->finish();
     };
     if ($@) {
+        my $err = $@;
         eval { $dbh->rollback() };
-        return (undef, 'unable to insert user: ' . $@);
+        return (undef, 'unable to insert user: ' . $err);
     }
 
-    return ($sth->{mysql_insertid}, undef);
+    return ($inserted_id, undef);
 }
 
 my @updateable_keys = qw/name birthday funds/;
@@ -145,8 +164,9 @@ sub update {
         $dbh->commit();
     };
     if ($@) {
+        my $err = $@;
         eval { $dbh->rollback() };
-        return (undef, 'unable to update user: ' . $@);
+        return (undef, 'unable to update user: ' . $err);
     }
 
     return;
@@ -169,8 +189,9 @@ sub remove {
         $dbh->commit();
     };
     if ($@) {
+        my $err = $@;
         eval { $dbh->rollback() };
-        return (undef, 'unable to delete user: ' . $@);
+        return (undef, 'unable to delete user: ' . $err);
     }
 
     return;

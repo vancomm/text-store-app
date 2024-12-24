@@ -101,7 +101,7 @@ get '/success' => 'success';
 
 get '/error' => 'error';
 
-app->start();
+app->start('daemon', '-l', 'http://*:8000');
 __DATA__
 
 @@ index.html.ep

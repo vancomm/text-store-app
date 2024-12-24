@@ -1,4 +1,8 @@
 .vscode
 cover_db
+nytprof
 *.jsonl
 *.env
+*.out
+*.err
+*.pid
